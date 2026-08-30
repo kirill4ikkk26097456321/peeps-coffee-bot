@@ -7,19 +7,12 @@ import org.springframework.web.client.RestClient
 
 @Service
 class TelegramService(
-    @Value("\${telegram.bot-token}") private val botToken: String,
-    @Value("\${telegram.chat-id}") private val chatId: String
+    @Value("\${telegram.bot-token}") private val botToken: String
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
     private val restClient = RestClient.create()
 
-    fun sendOrderNotification(orderId: Long, details: String, price: Int) {
-        val text = """
-            ⚡️ <b>ЗАКАЗ #$orderId</b>
-            ☕️ <b>Напиток:</b> $details
-            💰 <b>К оплате:</b> $price руб.
-        """.trimIndent()
-
+    fun sendMessage(chatId: Long, text: String) {
         try {
             restClient.post()
                 .uri("https://api.telegram.org/bot$botToken/sendMessage")
@@ -32,10 +25,9 @@ class TelegramService(
                 )
                 .retrieve()
                 .toBodilessEntity()
-
-            log.info("Уведомление по заказу #$orderId успешно отправлено в чат бариста")
+            log.info("Сообщение успешно отправлено пользователю $chatId")
         } catch (e: Exception) {
-            log.error("Ошибка отправки сообщения в Telegram: ${e.message}", e)
+            log.error("Не удалось отправить сообщение в TG ($chatId): ${e.message}")
         }
     }
 }
