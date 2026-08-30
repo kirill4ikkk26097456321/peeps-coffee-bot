@@ -10,15 +10,23 @@ class OrderEntity(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long? = null,
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    val user: UserEntity? = null,
+
     @Column(nullable = false)
     val details: String,
 
     @Column(name = "total_price", nullable = false)
     val totalPrice: Int,
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    var status: String = "НОВЫЙ",
+    var status: OrderStatus = OrderStatus.CREATED,
 
     @Column(name = "created_at", nullable = false)
-    val createdAt: LocalDateTime = LocalDateTime.now()
+    val createdAt: LocalDateTime = LocalDateTime.now(),
+
+    @Column(name = "updated_at", nullable = false)
+    var updatedAt: LocalDateTime = LocalDateTime.now()
 )
