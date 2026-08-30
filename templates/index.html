@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Меню Peeps</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg-color: var(--tg-theme-bg-color, #f8f9fa);
+            --text-color: var(--tg-theme-text-color, #1f2937);
+            --hint-color: var(--tg-theme-hint-color, #9ca3af);
+            --button-color: var(--tg-theme-button-color, #10b981);
+            --button-text-color: var(--tg-theme-button-text-color, #ffffff);
+        }
+        body { background-color: var(--bg-color); color: var(--text-color); font-family: -apple-system, BlinkMacSystemFont, sans-serif; margin: 0; padding: 0; padding-bottom: 90px; }
+        .categories-wrapper { position: sticky; top: 0; background-color: var(--bg-color); padding: 15px; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .categories { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; }
+        .categories::-webkit-scrollbar { display: none; }
+        .cat-btn { background: transparent; border: 1px solid var(--button-color); color: var(--button-color); padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; white-space: nowrap; cursor: pointer; }
+        .cat-btn.active { background: var(--button-color); color: var(--button-text-color); }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; padding: 15px; }
+        .card { background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.04); display: flex; flex-direction: column; }
+        .card-img { width: 100%; aspect-ratio: 1 / 1; background-color: #e5e7eb; object-fit: cover; }
+        .card-content { padding: 12px; display: flex; flex-direction: column; flex-grow: 1; justify-content: space-between; }
+        .card-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; color: #111827; }
+        .card-price { font-size: 13px; color: var(--hint-color); margin-bottom: 12px; }
+        .add-btn { background-color: #f3f4f6; color: var(--button-color); border: none; padding: 8px; border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; width: 100%; }
+    </style>
+</head>
+<body>
+    <div class="categories-wrapper"><div class="categories" id="category-list"></div></div>
+    <div class="grid" id="menu-grid"></div>
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.expand();
+        const menuData = [
+            { id: 'esp', name: 'Эспрессо', cat: 'Классика', price: 120 },
+            { id: 'ame', name: 'Американо', cat: 'Классика', price: 120 },
+            { id: 'cap', name: 'Капучино', cat: 'Классика', price: 150 },
+            { id: 'lat', name: 'Латте', cat: 'Классика', price: 150 },
+            { id: 'fla', name: 'Флэт Уайт', cat: 'Классика', price: 220 },
+            { id: 'raf', name: 'Раф', cat: 'Классика', price: 280 },
+            { id: 'mlat', name: 'Матча Латте', cat: 'Не кофе', price: 250 },
+            { id: 'mfus', name: 'Матча Фьюжн', cat: 'Не кофе', price: 290 },
+            { id: 'braf', name: 'Банановый Раф', cat: 'Авторский', price: 380 },
+            { id: 'lklu', name: 'Латте Клубника', cat: 'Авторский', price: 350 },
+            { id: 'bgol', name: 'Голубое Облако', cat: 'Бабл Ти', price: 320 },
+            { id: 'lpip', name: 'Пипс', cat: 'Лимонады', price: 280 },
+            { id: 'cmya', name: 'Мята-Грейпфрут', cat: 'Чай', price: 250 },
+            { id: 'msmu', name: 'Смурфик', cat: 'Милкшейки', price: 310 },
+            { id: 'zfit', name: 'Супер Фит', cat: 'Смузи', price: 290 },
+            { id: 'fape', name: 'Апельсин', cat: 'Фреш', price: 350 }
+        ];
+        let cart = [];
+        let currentCategory = 'Классика';
+        const categories = [...new Set(menuData.map(item => item.cat))];
+        function renderCategories() {
+            document.getElementById('category-list').innerHTML = categories.map(cat => `
+                <button class="cat-btn ${cat === currentCategory ? 'active' : ''}" onclick="setCategory('${cat}')">${cat}</button>
+            `).join('');
+        }
+        function setCategory(cat) { currentCategory = cat; renderCategories(); renderGrid(); }
+        function renderGrid() {
+            document.getElementById('menu-grid').innerHTML = menuData.filter(i => i.cat === currentCategory).map(item => `
+                <div class="card">
+                    <img src="https://placehold.co/400x400/f3f4f6/9ca3af?text=Peeps" class="card-img">
+                    <div class="card-content">
+                        <div><div class="card-title">${item.name}</div><div class="card-price">от ${item.price} ₽</div></div>
+                        <button class="add-btn" onclick="addToCart('${item.id}')">В корзину</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        function addToCart(id) {
+            cart.push(menuData.find(i => i.id === id));
+            tg.HapticFeedback.impactOccurred('light');
+            let total = cart.reduce((s, i) => s + i.price, 0);
+            tg.MainButton.setText(`Оформить заказ на ${total} ₽`);
+            tg.MainButton.show();
+        }
+        Telegram.WebApp.onEvent('mainButtonClicked', () => {
+            if (cart.length === 0) return;
+            
+            fetch('https://hgbdg-103-109-234-89.run.pinggy-free.link/api/order', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ drinkName: cart.map(i => i.name).join(', '), totalPrice: cart.reduce((s, i) => s + i.price, 0) })
+            }).then(() => { cart = []; tg.MainButton.hide(); tg.close(); });
+        });
+        renderCategories(); renderGrid();
+    </script>
+</body>
+</html>
