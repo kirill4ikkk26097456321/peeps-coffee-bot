@@ -8,4 +8,5 @@ import org.springframework.stereotype.Repository
 @Repository
 interface OrderRepository : JpaRepository<OrderEntity, Long> {
     fun findAllByStatusNotInOrderByCreatedAtDesc(statuses: List<OrderStatus>): List<OrderEntity>
+    fun findFirstByTelegramIdOrderByIdDesc(telegramId: Long): OrderEntity?
 }

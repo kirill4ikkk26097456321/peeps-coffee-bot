@@ -4,6 +4,7 @@ import coffee.dto.response.AdminOrderResponse
 import coffee.dto.request.CreateOrderRequest
 import coffee.dto.response.CreateOrderResponse
 import coffee.dto.request.UpdateStatusRequest
+import coffee.dto.response.LastOrderResponse
 import coffee.model.OrderEntity
 import coffee.model.OrderStatus
 import coffee.repository.OrderRepository
@@ -48,6 +49,15 @@ class OrderService(
         }
     }
 
+
+    @Transactional
+    fun getLastOrder(telegramId: Long): LastOrderResponse? {
+        val lastOrder = orderRepository.findFirstByTelegramIdOrderByIdDesc(telegramId) ?: return null
+        return LastOrderResponse(
+            drinkName = lastOrder.details,
+            totalPrice = lastOrder.totalPrice
+        )
+    }
 
     @Transactional
     fun updateStatus(orderId: Long, req: UpdateStatusRequest): AdminOrderResponse {
